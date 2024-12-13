@@ -1,0 +1,44 @@
+{
+  "name": "@texoport/lazy",
+  "type": "module",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "description": "you're lazy, i'm lazy, we're lazy, let's make js lazy",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bun run build.ts && tsc",
+    "prepublishOnly": "bun run build && bun test",
+    "test": "bun test",
+    "publish:patch": "npm version patch && npm publish --access public",
+    "publish:minor": "npm version minor && npm publish --access public",
+    "publish:major": "npm version major && npm publish --access public",
+    "release:patch": "bun run build && bun test && bun run publish:patch",
+    "release:minor": "bun run build && bun test && bun run publish:minor",
+    "release:major": "bun run build && bun test && bun run publish:major"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "bun"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/saiashirwad/lazy#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saiashirwad/lazy.git"
+  },
+  "bugs": "https://github.com/saiashirwad/lazy/issues",
+  "author": "Sai Ashirwad <saiashirwadr@gmail.com>",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "^1.1.10",
+    "typescript": "^5.7.2"
+  }
+}
