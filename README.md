@@ -1,6 +1,13 @@
 # Lazy
 you're lazy, i'm lazy, we're lazy, why isn't your code lazy?
 
+# Install
+
+```bash
+bun add @texoport/lazy
+```
+
+# Example
 
 ```typescript
 import { appendFile } from 'node:fs/promises'
