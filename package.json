@@ -1,7 +1,7 @@
 {
   "name": "@texoport/lazy",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "description": "you're lazy, i'm lazy, we're lazy, let's make js lazy",
