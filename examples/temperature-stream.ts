@@ -1,6 +1,6 @@
-import { LazyArray } from '../src'
+import { lazy } from '../src'
 
-const tempStream = LazyArray(async function* () {
+const tempStream = lazy(async function* () {
 	let baseTemp = 20
 
 	while (true) {

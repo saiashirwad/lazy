@@ -1,4 +1,4 @@
-import { Lazy } from '../src'
+import { lazy } from '../src'
 
 interface PokemonListResponse {
 	count: number
@@ -44,17 +44,20 @@ async function fetchPokemonDetail(url: string): Promise<PokemonDetail> {
 
 const limit = 100
 
-const firePokemon = await Lazy.Lazylist(async function* () {
-	let offset = 0
+const firePokemon = await lazy
+	.Lazylist(async function* () {
+		let offset = 0
 
-	while (true) {
-		const data = await fetchPokemonList(offset, limit)
-		if (!data.results.length) break
-		yield* batch(data.results, 20, (pokemon) => fetchPokemonDetail(pokemon.url))
-		if (!data.next) break
-		offset += limit
-	}
-})
+		while (true) {
+			const data = await fetchPokemonList(offset, limit)
+			if (!data.results.length) break
+			yield* batch(data.results, 20, (pokemon) =>
+				fetchPokemonDetail(pokemon.url),
+			)
+			if (!data.next) break
+			offset += limit
+		}
+	})
 	.tap((pokemon) => {
 		console.log(pokemon.name)
 	})

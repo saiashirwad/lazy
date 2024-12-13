@@ -2,15 +2,15 @@ type Gen<T> = () =>
 	| Generator<T, void, unknown>
 	| AsyncGenerator<T, void, unknown>
 
-export interface LazyArray<T> {
+export interface Lazy<T> {
 	[Symbol.iterator](): Generator<T, void, unknown>
 	[Symbol.asyncIterator](): AsyncGenerator<T, void, unknown>
 
 	take(n: number): Promise<T[]>
 	nth(n: number): Promise<T | undefined>
-	map<U>(fn: (value: T) => U | Promise<U>): LazyArray<U>
-	tap(fn: (value: T) => void | Promise<void>): LazyArray<T>
-	filter(fn: (value: T) => boolean | Promise<boolean>): LazyArray<T>
+	map<U>(fn: (value: T) => U | Promise<U>): Lazy<U>
+	tap(fn: (value: T) => void | Promise<void>): Lazy<T>
+	filter(fn: (value: T) => boolean | Promise<boolean>): Lazy<T>
 	reduce<U>(
 		fn: (accumulator: U, value: T) => U | Promise<U>,
 		initialValue: U,
@@ -19,7 +19,7 @@ export interface LazyArray<T> {
 	listen(fn: (value: T) => void | Promise<void>): Promise<void>
 }
 
-export function LazyArray<T>(generator: Gen<T>): LazyArray<T> {
+export function lazy<T>(generator: Gen<T>): Lazy<T> {
 	return {
 		*[Symbol.iterator]() {
 			// @ts-expect-error this is fine
@@ -47,7 +47,7 @@ export function LazyArray<T>(generator: Gen<T>): LazyArray<T> {
 
 		tap(fn) {
 			const self = this
-			return LazyArray(async function* () {
+			return lazy(async function* () {
 				for await (const value of self) {
 					await fn(value)
 					yield value
@@ -64,18 +64,18 @@ export function LazyArray<T>(generator: Gen<T>): LazyArray<T> {
 			return undefined
 		},
 
-		map<U>(fn: (value: T) => U | Promise<U>): LazyArray<U> {
+		map<U>(fn: (value: T) => U | Promise<U>): Lazy<U> {
 			const self = this
-			return LazyArray(async function* () {
+			return lazy(async function* () {
 				for await (const value of self) {
 					yield await fn(value)
 				}
 			})
 		},
 
-		filter(fn: (value: T) => boolean | Promise<boolean>): LazyArray<T> {
+		filter(fn: (value: T) => boolean | Promise<boolean>): Lazy<T> {
 			const self = this
-			return LazyArray(async function* () {
+			return lazy(async function* () {
 				for await (const value of self) {
 					if (await fn(value)) yield value
 				}

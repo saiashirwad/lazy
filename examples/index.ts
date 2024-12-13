@@ -1,6 +1,6 @@
-import { Lazy } from '../src'
+import { lazy } from '../src'
 
-const numbers = Lazy.Lazylist(async function* () {
+const numbers = lazy.Lazylist(async function* () {
 	let i = 0
 	while (true) {
 		await new Promise((resolve) => setTimeout(resolve, 100))
