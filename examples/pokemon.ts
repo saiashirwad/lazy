@@ -42,36 +42,45 @@ async function fetchPokemonDetail(url: string): Promise<PokemonDetail> {
 	return response.json()
 }
 
-const pokemonStream = Lazy.arr(async function* () {
+const limit = 100
+
+const firePokemon = await Lazy.Lazylist(async function* () {
 	let offset = 0
-	const limit = 20
 
 	while (true) {
 		const data = await fetchPokemonList(offset, limit)
-
 		if (!data.results.length) break
-
-		for (const pokemon of data.results) {
-			yield await fetchPokemonDetail(pokemon.url)
-		}
-
+		yield* batch(data.results, 20, (pokemon) => fetchPokemonDetail(pokemon.url))
 		if (!data.next) break
 		offset += limit
 	}
 })
-
-const firePokemon = await pokemonStream
 	.tap((pokemon) => {
 		console.log(pokemon.name)
 	})
 	.filter((pokemon) => {
 		return pokemon.types.some((type) => type.type.name === 'fire')
 	})
+	.map((pokemon) => {
+		return {
+			name: pokemon.name,
+			sprite: pokemon.sprites.front_default,
+			types: pokemon.types.map((t) => t.type.name).join(', '),
+		}
+	})
 	.take(5)
 
-firePokemon.forEach((pokemon) => {
-	console.log(`
-      Name: ${pokemon.name}
-      Sprite: ${pokemon.sprites.front_default}
-      Types: ${pokemon.types.map((t) => t.type.name).join(', ')}`)
-})
+console.log(firePokemon)
+
+export async function* batch<T, R>(
+	items: T[],
+	batchSize: number,
+	fn: (item: T) => Promise<R>,
+): AsyncGenerator<R, void, unknown> {
+	for (let i = 0; i < items.length; i += batchSize) {
+		const batch = items.slice(i, i + batchSize)
+		const results = await Promise.all(batch.map(fn))
+		// @ts-expect-error this is fine
+		yield* results
+	}
+}
