@@ -1,39 +1,37 @@
 # Lazy
-you're lazy, i'm lazy, we're lazy, let's make js lazy
+you're lazy, i'm lazy, we're lazy, why isn't your code lazy?
 
 
 ```typescript
-import { LazyArray } from '@texoport/lazy'
+import { appendFile } from 'node:fs/promises'
+import { blue, plot } from 'asciichart'
+import { lazy } from '@texoport/lazy'
 
-const tempStream = LazyArray(async function* () {
-	let baseTemp = 20
-
+lazy(async function* () {
 	while (true) {
-		const fluctuation = Math.random() * 2 - 1
-		const temperature = parseFloat(
-			(baseTemp + fluctuation * (Math.random() > 0.5 ? 1 : -1)).toFixed(2),
+		const response = await fetch(
+			'https://api.binance.com/api/v3/ticker/price?symbol=DOGEUSDT',
 		)
+		const data = await response.json()
 
 		yield {
-			temperature,
+			price: data.price,
 			timestamp: Date.now(),
 		}
 
 		await new Promise((resolve) => setTimeout(resolve, 500))
-		baseTemp += 0.2
 	}
 })
-	.filter((reading) => reading.temperature > 20)
-	.map(
-		(reading) =>
-			`[${new Date(reading.timestamp).toLocaleTimeString()}] ` +
-			`Temperature: ${reading.temperature}°C ` +
-			`(${Number(((reading.temperature * 9) / 5 + 32).toFixed(1))}°F)`,
-	)
+	.tap((reading) => {
+		appendFile('doge.txt', `${reading.timestamp} ${reading.price}\n`)
+	})
+	.map((reading) => parseFloat(reading.price))
+	.window(50)
+	.listen((priceHistory) => {
+		console.clear()
+		console.log(plot(priceHistory, { height: 15, colors: [blue] }))
+	})
 
-await tempStream.listen((result) => {
-	console.clear()
-	console.log(result)
-})
+
 
 ```
