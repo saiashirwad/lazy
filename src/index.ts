@@ -1,4 +1,4 @@
-type Gen<T> = () =>
+export type Gen<T> = () =>
 	| Generator<T, void, unknown>
 	| AsyncGenerator<T, void, unknown>
 

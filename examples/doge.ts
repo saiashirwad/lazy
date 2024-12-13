@@ -1,5 +1,5 @@
 import { appendFile } from 'node:fs/promises'
-import { blue, plot } from 'asciichart'
+import { plot } from 'asciichart'
 import { lazy } from '../src'
 
 lazy(async function* () {
@@ -24,5 +24,5 @@ lazy(async function* () {
 	.window(50)
 	.listen((priceHistory) => {
 		console.clear()
-		console.log(plot(priceHistory, { height: 15, colors: [blue] }))
+		console.log(plot(priceHistory))
 	})
