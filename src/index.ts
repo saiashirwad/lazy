@@ -7,13 +7,10 @@ export interface LazyArray<T> {
 	[Symbol.asyncIterator](): AsyncGenerator<T, void, unknown>
 
 	take(n: number): Promise<T[]>
-
 	nth(n: number): Promise<T | undefined>
-
 	map<U>(fn: (value: T) => U | Promise<U>): LazyArray<U>
-
+	tap(fn: (value: T) => void | Promise<void>): LazyArray<T>
 	filter(fn: (value: T) => boolean | Promise<boolean>): LazyArray<T>
-
 	reduce<U>(
 		fn: (accumulator: U, value: T) => U | Promise<U>,
 		initialValue: U,
@@ -47,7 +44,17 @@ export namespace Lazy {
 				return arr
 			},
 
-			async nth(n: number): Promise<T | undefined> {
+			tap(fn) {
+				const self = this
+				return arr(async function* () {
+					for await (const value of self) {
+						await fn(value)
+						yield value
+					}
+				})
+			},
+
+			async nth(n) {
 				let i = 0
 				for await (const value of this) {
 					if (i === n) return value

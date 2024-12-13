@@ -27,22 +27,32 @@ interface PokemonDetail {
 	}[]
 }
 
+async function fetchPokemonList(
+	offset: number,
+	limit: number,
+): Promise<PokemonListResponse> {
+	const response = await fetch(
+		`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`,
+	)
+	return response.json()
+}
+
+async function fetchPokemonDetail(url: string): Promise<PokemonDetail> {
+	const response = await fetch(url)
+	return response.json()
+}
+
 const pokemonStream = Lazy.arr(async function* () {
 	let offset = 0
 	const limit = 20
 
 	while (true) {
-		const response = await fetch(
-			`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`,
-		)
-		const data: PokemonListResponse = await response.json()
+		const data = await fetchPokemonList(offset, limit)
 
 		if (!data.results.length) break
 
 		for (const pokemon of data.results) {
-			const detailResponse = await fetch(pokemon.url)
-			const pokemonDetail: PokemonDetail = await detailResponse.json()
-			yield pokemonDetail
+			yield await fetchPokemonDetail(pokemon.url)
 		}
 
 		if (!data.next) break
@@ -52,17 +62,19 @@ const pokemonStream = Lazy.arr(async function* () {
 
 async function main() {
 	const firePokemon = await pokemonStream
-		.filter((pokemon) =>
-			pokemon.types.some((type) => type.type.name === 'fire'),
-		)
+		.tap((pokemon) => {
+			console.log(pokemon.name)
+		})
+		.filter((pokemon) => {
+			return pokemon.types.some((type) => type.type.name === 'fire')
+		})
 		.take(5)
 
 	firePokemon.forEach((pokemon) => {
 		console.log(`
-            Name: ${pokemon.name}
-            Sprite: ${pokemon.sprites.front_default}
-            Types: ${pokemon.types.map((t) => t.type.name).join(', ')}
-        `)
+      Name: ${pokemon.name}
+      Sprite: ${pokemon.sprites.front_default}
+      Types: ${pokemon.types.map((t) => t.type.name).join(', ')}`)
 	})
 }
 
