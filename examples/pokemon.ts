@@ -60,22 +60,18 @@ const pokemonStream = Lazy.arr(async function* () {
 	}
 })
 
-async function main() {
-	const firePokemon = await pokemonStream
-		.tap((pokemon) => {
-			console.log(pokemon.name)
-		})
-		.filter((pokemon) => {
-			return pokemon.types.some((type) => type.type.name === 'fire')
-		})
-		.take(5)
+const firePokemon = await pokemonStream
+	.tap((pokemon) => {
+		console.log(pokemon.name)
+	})
+	.filter((pokemon) => {
+		return pokemon.types.some((type) => type.type.name === 'fire')
+	})
+	.take(5)
 
-	firePokemon.forEach((pokemon) => {
-		console.log(`
+firePokemon.forEach((pokemon) => {
+	console.log(`
       Name: ${pokemon.name}
       Sprite: ${pokemon.sprites.front_default}
       Types: ${pokemon.types.map((t) => t.type.name).join(', ')}`)
-	})
-}
-
-main().catch(console.error)
+})
