@@ -1,4 +1,12 @@
 import { lazy } from '../src'
+import { blue, plot, PlotConfig } from 'asciichart'
+
+function drawPlot(data: number[], cfg?: PlotConfig) {
+	console.clear()
+	console.log(plot(data, cfg ?? { height: 15, colors: [blue] }))
+}
+
+const MAX_HISTORY = 50
 
 const doge = lazy(async function* () {
 	while (true) {
@@ -12,15 +20,13 @@ const doge = lazy(async function* () {
 			timestamp: Date.now(),
 		}
 
-		await new Promise((resolve) => setTimeout(resolve, 50))
+		await new Promise((resolve) => setTimeout(resolve, 10))
 	}
 })
-	.map((reading) => ({
-		...reading,
-		timestamp: new Date(reading.timestamp).toLocaleTimeString(),
-	}))
-	.map((reading) => `[${reading.timestamp}] DOGE Price: $${reading.price}`)
 
-doge.listen((result) => {
-	console.log(result)
-})
+doge
+	.map((reading) => parseFloat(reading.price))
+	.window(MAX_HISTORY)
+	.listen((priceHistory) => {
+		drawPlot(priceHistory)
+	})

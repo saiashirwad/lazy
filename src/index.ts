@@ -12,11 +12,12 @@ export interface Lazy<T> {
 	tap(fn: (value: T) => void | Promise<void>): Lazy<T>
 	filter(fn: (value: T) => boolean | Promise<boolean>): Lazy<T>
 	reduce<U>(
-		fn: (accumulator: U, value: T) => U | Promise<U>,
 		initialValue: U,
-	): Promise<U>
+		fn: (accumulator: U, value: T) => U | Promise<U>,
+	): Lazy<U>
 	collect(): Promise<T[]>
 	listen(fn: (value: T) => void | Promise<void>): Promise<void>
+	window(size: number): Lazy<T[]>
 }
 
 export function lazy<T>(generator: Gen<T>): Lazy<T> {
@@ -82,15 +83,18 @@ export function lazy<T>(generator: Gen<T>): Lazy<T> {
 			})
 		},
 
-		async reduce<U>(
-			fn: (accumulator: U, value: T) => U | Promise<U>,
+		reduce<U>(
 			initialValue: U,
-		): Promise<U> {
-			let accumulator = initialValue
-			for await (const value of this) {
-				accumulator = await fn(accumulator, value)
-			}
-			return accumulator
+			fn: (accumulator: U, value: T) => U | Promise<U>,
+		) {
+			const self = this
+			return lazy(async function* () {
+				let accumulator = initialValue
+				for await (const value of self) {
+					accumulator = await fn(accumulator, value)
+					yield accumulator
+				}
+			})
 		},
 
 		async collect(): Promise<T[]> {
@@ -105,6 +109,13 @@ export function lazy<T>(generator: Gen<T>): Lazy<T> {
 			for await (const value of this) {
 				await fn(value)
 			}
+		},
+
+		window(size: number): Lazy<T[]> {
+			return this.reduce<T[]>([], (acc, value) => {
+				if (acc.length === size) return acc.slice(1)
+				return [...acc, value]
+			})
 		},
 	}
 }
