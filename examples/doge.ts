@@ -1,14 +1,8 @@
+import { appendFile } from 'node:fs/promises'
+import { blue, plot } from 'asciichart'
 import { lazy } from '../src'
-import { blue, plot, PlotConfig } from 'asciichart'
 
-function drawPlot(data: number[], cfg?: PlotConfig) {
-	console.clear()
-	console.log(plot(data, cfg ?? { height: 15, colors: [blue] }))
-}
-
-const MAX_HISTORY = 50
-
-const doge = lazy(async function* () {
+lazy(async function* () {
 	while (true) {
 		const response = await fetch(
 			'https://api.binance.com/api/v3/ticker/price?symbol=DOGEUSDT',
@@ -20,13 +14,15 @@ const doge = lazy(async function* () {
 			timestamp: Date.now(),
 		}
 
-		await new Promise((resolve) => setTimeout(resolve, 10))
+		await new Promise((resolve) => setTimeout(resolve, 500))
 	}
 })
-
-doge
+	.tap((reading) => {
+		appendFile('doge.txt', `${reading.timestamp} ${reading.price}\n`)
+	})
 	.map((reading) => parseFloat(reading.price))
-	.window(MAX_HISTORY)
+	.window(50)
 	.listen((priceHistory) => {
-		drawPlot(priceHistory)
+		console.clear()
+		console.log(plot(priceHistory, { height: 15, colors: [blue] }))
 	})
