@@ -14,7 +14,7 @@ lazy(async function* () {
 			timestamp: Date.now(),
 		}
 
-		await new Promise((resolve) => setTimeout(resolve, 500))
+		await new Promise((resolve) => setTimeout(resolve, 50))
 	}
 })
 	.tap((reading) => {
@@ -24,5 +24,9 @@ lazy(async function* () {
 	.window(50)
 	.listen((priceHistory) => {
 		console.clear()
-		console.log(plot(priceHistory))
+		console.log(
+			plot(priceHistory, {
+				height: 10,
+			}),
+		)
 	})
